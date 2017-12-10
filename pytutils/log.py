@@ -95,3 +95,7 @@ def get_logger(name=None):
         name = _namespace_from_calling_context()
 
     return logging.getLogger(name)
+
+# gross, old stdlib. gross.
+getLogger = get_logger
+

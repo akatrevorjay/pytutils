@@ -3,6 +3,7 @@ Mostly drop-in usage replacement for `pprint` and `pformat` that doesn't suck.
 """
 
 import six
+import sys
 import warnings
 import pprint as _pprint
 
@@ -13,10 +14,11 @@ try:
     __PP_FORMATTER = pygments.formatters.get_formatter_by_name('console16m', style=__PP_STYLE)
     __PP_LEXER_PYTHON = pygments.lexers.get_lexer_by_name('python{}'.format(six.PY3 and '3' or ''))
 
-
 except ImportError:
     warnings.warn('Could not import `pygments`. Disabling syntax highlighting I guess.')
     pygments = False
+
+__all__ = ('pf', 'pformat', 'pp', 'pprint')
 
 
 def pf(arg, lexer=__PP_LEXER_PYTHON, formatter=__PP_FORMATTER):
@@ -60,3 +62,4 @@ def pp(arg, lexer=__PP_LEXER_PYTHON, formatter=__PP_FORMATTER, outfile=sys.stdou
             outfile.close()
 
 pprint = pp
+
