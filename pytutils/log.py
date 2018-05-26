@@ -4,6 +4,8 @@ import inspect
 import sys
 import os
 
+from contextlib import contextmanager
+
 
 class _PyInfo(object):
     PY2 = sys.version_info[0] == 2
@@ -33,15 +35,55 @@ def _namespace_from_calling_context():
 
 
 DEFAULT_CONFIG = dict(
-    level=logging.INFO,
-    format=' '.join(
-        [
-            '%(asctime)s|',
-            '%(name)s/%(processName)s[%(process)d]-%(threadName)s[%(thread)d]:'
-            '%(message)s @%(funcName)s:%(lineno)d #%(levelname)s',
-        ]
-    ),
+    version=1,
+    formatters={
+        'colored': {
+            '()': 'colorlog.ColoredFormatter',
+            'format':
+                '%(bg_black)s%(log_color)s'
+                '[%(asctime)s] '
+                '[%(name)s/%(process)d] '
+                '%(message)s '
+                '%(blue)s@%(funcName)s:%(lineno)d '
+                '#%(levelname)s'
+                '%(reset)s',
+            'datefmt': '%H:%M:%S',
+        },
+        'simple': {
+            # format=' '.join(
+            #     [
+            #         '%(asctime)s|',
+            #         '%(name)s/%(processName)s[%(process)d]-%(threadName)s[%(thread)d]:'
+            #         '%(message)s @%(funcName)s:%(lineno)d #%(levelname)s',
+            #     ]
+            # ),
+            'format':
+                '%(asctime)s| %(name)s/%(processName)s[%(process)d]-%(threadName)s[%(thread)d]: '
+                '%(message)s @%(funcName)s:%(lineno)d #%(levelname)s',
+            'datefmt': '%Y-%m-%d %H:%M:%S',
+        },
+    },
+    handlers={
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'colored',
+            'level': logging.DEBUG,
+        },
+    },
+    root=dict(handlers=['console'], level=logging.DEBUG),
+    loggers={
+        'requests': dict(level=logging.INFO),
+    },
 )
+
+
+def configure(config=None, env_var='LOGGING', default=DEFAULT_CONFIG):
+    cfg = get_config(config, env_var, default)
+
+    try:
+        logging.config.dictConfig(cfg)
+    except TypeError as exc:
+        logging.basicConfig(**cfg)
 
 
 def get_config(given=None, env_var=None, default=None):
@@ -67,14 +109,12 @@ def get_config(given=None, env_var=None, default=None):
             try:
                 config = yaml.load(config)
             except ValueError:
-                raise ValueError("Could not parse logging config as bare, json," " or yaml: %s" % config)
+                raise ValueError(
+                    "Could not parse logging config as bare, json,"
+                    " or yaml: %s" % config
+                )
 
     return config
-
-
-def configure(config=None, env_var='LOGGING', default=DEFAULT_CONFIG):
-    cfg = get_config(config, env_var, default)
-    logging.config.dictConfig(**cfg)
 
 
 _CONFIGURED = []
@@ -96,6 +136,17 @@ def get_logger(name=None):
 
     return logging.getLogger(name)
 
+
 # gross, old stdlib. gross.
 getLogger = get_logger
 
+
+@contextmanager
+def logger_level(logger, level):
+    """Set logger level to `level` within a context block. Don't use this except for debugging please, it's gross."""
+    initial = logger.level
+    logger.level = level
+    try:
+        yield
+    finally:
+        logger.level = initial

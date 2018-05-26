@@ -11,6 +11,7 @@ class AttrDict(dict):
         super(AttrDict, self).__init__(*args, **kwargs)
         self.__dict__ = self
 
+
 Messenger = AttrDict
 
 
@@ -125,8 +126,10 @@ multidict = MultiDict
 
 
 def format_dict_recursively(
-    mapping, raise_unresolvable=True, strip_unresolvable=False, conversions={'True': True,
-                                                                             'False': False}
+    mapping, raise_unresolvable=True, strip_unresolvable=False, conversions={
+        'True': True,
+        'False': False
+    }
 ):
     """Format each string value of dictionary using values contained within
     itself, keeping track of dependencies as required.
@@ -200,4 +203,3 @@ def format_dict_recursively(
             raise ValueError('Impossible to format dict due to missing elements: %r' % missing)
 
     return ret
-

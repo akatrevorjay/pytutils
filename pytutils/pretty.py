@@ -9,6 +9,9 @@ import pprint as _pprint
 
 try:
     import pygments
+    import pygments.styles
+    import pygments.formatters
+    import pygments.lexers
 
     __PP_STYLE = pygments.styles.get_style_by_name('monokai')
     __PP_FORMATTER = pygments.formatters.get_formatter_by_name('console16m', style=__PP_STYLE)

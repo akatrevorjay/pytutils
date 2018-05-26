@@ -1,12 +1,28 @@
+"""
+Utilities to work with files.
+"""
+
 import os
 import sys
+import functools
+
+LINEMODE = 0
 
 
-def islurp(filename, mode='r', allow_stdin=True, expanduser=True, expandvars=True):
+def islurp(filename, mode='r', iter_by=LINEMODE, allow_stdin=True, expanduser=True, expandvars=True):
     """
-    Read a file and yield each line.
-    If filename is '-' and allow_stdin=True (default), read from stdin.
+    Read [expanded] `filename` and yield each (line | chunk).
+
+    :param str filename: File path
+    :param str mode: Use this mode to open `filename`, ala `r` for text (default), `rb` for binary, etc.
+    :param int iter_by: Iterate by this many bytes at a time. Default is by line.
+    :param bool allow_stdin: If Truthy and filename is `-`, read from `sys.stdin`.
+    :param bool expanduser: If Truthy, expand `~` in `filename`
+    :param bool expandvars: If Truthy, expand env vars in `filename`
     """
+    if iter_by == 'LINEMODE':
+        iter_by = LINEMODE
+
     fh = None
     try:
         if filename == '-' and allow_stdin:
@@ -18,17 +34,21 @@ def islurp(filename, mode='r', allow_stdin=True, expanduser=True, expandvars=Tru
                 filename = os.path.expandvars(filename)
 
             fh = open(filename, mode)
+            fh_next = fh.readline if iter_by == LINEMODE else functools.partial(fh.read, iter_by)
 
         while True:
-            line = fh.readline()
-            if line == '':  # EOF
+            buf = fh_next()
+            if buf == '':  # EOF
                 break
-            yield line
+            yield buf
     finally:
         if fh and fh != sys.stdin:
             fh.close()
 
+# convenience
+islurp.LINEMODE = LINEMODE
 
+# alias
 slurp = islurp
 
 
