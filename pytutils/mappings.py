@@ -59,7 +59,14 @@ class ProxyMutableMapping(collections.MutableMapping):
 
 class PrefixedProxyMutableMapping(ProxyMutableMapping):
 
-    def __init__(self, prefix, mapping, only_prefixed=True, fancy_repr=True, dictify_repr=False):
+    def __init__(
+            self,
+            prefix,
+            mapping,
+            only_prefixed=True,
+            fancy_repr=True,
+            dictify_repr=False
+    ):
         """
         :param str prefix: Prefix to add/remove from keys.
         :param collections.MutableMapping mapping: Dict-like object to wrap
@@ -92,7 +99,11 @@ class PrefixedProxyMutableMapping(ProxyMutableMapping):
 
     def __iter__(self):
         orig_iter = super(PrefixedProxyMutableMapping, self).__iter__()
-        return (self.__key_remove_prefix__(key) for key in orig_iter if self.__key_allowed__(key))
+        return (
+            self.__key_remove_prefix__(key)
+            for key in orig_iter
+            if self.__key_allowed__(key)
+        )
 
     def __contains__(self, item):
         item = self.__key_add_prefix__(item)
@@ -126,10 +137,13 @@ multidict = MultiDict
 
 
 def format_dict_recursively(
-    mapping, raise_unresolvable=True, strip_unresolvable=False, conversions={
-        'True': True,
-        'False': False
-    }
+        mapping,
+        raise_unresolvable=True,
+        strip_unresolvable=False,
+        conversions={
+            'True': True,
+            'False': False
+        }
 ):
     """Format each string value of dictionary using values contained within
     itself, keeping track of dependencies as required.
@@ -200,6 +214,39 @@ def format_dict_recursively(
                 break
 
             missing = {k: [x for x in deps[k] if x not in ret]}
-            raise ValueError('Impossible to format dict due to missing elements: %r' % missing)
+            raise ValueError(
+                'Impossible to format dict due to missing elements: %r' %
+                missing
+            )
 
     return ret
+
+
+class ProxyMutableAttrDict(dict):
+
+    @property
+    def _wrap_as(self):
+        return self.__class__
+
+    def __getattr__(self, key):
+        if not key.startswith('_'):
+            try:
+                val = self.__mapping[key]
+                return val
+            except KeyError as exc:
+                # in py3 I'd chain these
+                raise AttributeError(key)
+
+    def __setattr__(self, key, value):
+        if not key.startswith('_'):
+            if isinstance(value, collections.Mapping
+                         ) and not isinstance(value, self._wrap_as):
+                value = self.__class__(value)
+
+            try:
+                self[key] = value
+            except KeyError as exc:
+                # in py3 I'd chain these
+                raise AttributeError(key)
+
+        return super(ProxyMutableAttrDict, self).__setattr__(key, value)
