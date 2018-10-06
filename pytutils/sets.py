@@ -1,5 +1,5 @@
 import collections
-from .iterators import consume
+from .iters import consume
 
 
 class TimedValueSet(collections.MutableSet):

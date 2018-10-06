@@ -1,16 +1,24 @@
 import cachetools
-import tldextract
 
+from .pythree import ensure_decoded_text
+from itertools import accumulate
 
-# Do not request latest TLS list on init == suffix_list_url=False
-_tldex = tldextract.TLDExtract(suffix_list_url=False)
+_ttl_cache = cachetools.TTLCache(maxsize=1024, ttl=600)
 
 
 # This is cached because tldextract is SLOW
-@cachetools.ttl_cache(maxsize=1024, ttl=600)
+@cachetools.cachedmethod(_ttl_cache)
 def split_domain_into_subdomains(domain, split_tld=False):
+    import tldextract
+
     # Requires unicode
     domain = ensure_decoded_text(domain)
+
+    # Do not request latest TLS list on init == suffix_list_url=False
+    global _tldex
+    if _tldex is None:
+        _tldex = tldextract.TLDExtract(suffix_list_url=False)
+
     tx = _tldex(domain)
 
     domains = []
@@ -40,4 +48,3 @@ def split_domain_into_subdomains(domain, split_tld=False):
     domains.reverse()
 
     return domains
-

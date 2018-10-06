@@ -1,2 +1,5 @@
-wrapt
+cachetools
+py
+pygments
 six
+wrapt
