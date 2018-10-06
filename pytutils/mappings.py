@@ -221,8 +221,6 @@ class ProxyMutableAttrDict(dict):
                 # in py3 I'd chain these
                 raise AttributeError(key)
 
-        return super(ProxyMutableAttrDict, self).__getattr__(key)
-
     def __setattr__(self, key, value):
         if not key.startswith('_'):
             if isinstance(value, collections.Mapping) and not isinstance(value, self._wrap_as):

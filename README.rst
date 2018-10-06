@@ -1,23 +1,20 @@
-mainline
+pytutils
 ========
 
-.. image:: https://raw.githubusercontent.com/akatrevorjay/mainline/develop/media/logo.png
-    :alt: mainline logo
+Trevor's steaming hot pile of 🗑️  garbage.
+
+Don't worry, it's ♻️" recycleable.
+
+.. image:: https://raw.githubusercontent.com/akatrevorjay/pytutils/develop/media/logo.png
+    :alt: pytutils logo
     :align: center
-
-Simple yet powerful python dependency injection.
-
-Tested against Python 2.7 and 3.5.
 
 |ci-badge| |coverage-badge| |docs-badge|
 
-In Python3, you can use function annotations as well as the standard syntax.
 
-Examples in docs!
-
-- Docs: http://mainline.readthedocs.org/en/latest
-- API Docs: http://mainline.readthedocs.org/en/latest/mainline.html
-- PyPi: https://pypi.python.org/pypi/mainline
+- Docs: http://pytutils.readthedocs.org/en/latest
+- API Docs: http://pytutils.readthedocs.org/en/latest/pytutils.html
+- PyPi: https://pypi.python.org/pypi/pytutils
 
 
 Installation
@@ -25,7 +22,7 @@ Installation
 
 .. code:: sh
 
-    pip install mainline
+    pip install pytutils
 
 
 
@@ -39,10 +36,10 @@ Tox is used to handle testing multiple python versions.
     tox
 
 
-.. |ci-badge| image:: https://circleci.com/gh/akatrevorjay/mainline.svg?style=svg
-   :target: https://circleci.com/gh/akatrevorjay/mainline
-.. |coverage-badge| image:: https://coveralls.io/repos/akatrevorjay/mainline/badge.svg?branch=develop&service=github
-   :target: https://coveralls.io/github/akatrevorjay/mainline?branch=develop
-.. |docs-badge| image:: https://readthedocs.org/projects/mainline/badge/?version=latest
-   :target: http://mainline.readthedocs.org/en/latest/?badge=latest
+.. |ci-badge| image:: https://circleci.com/gh/akatrevorjay/pytutils.svg?style=svg
+   :target: https://circleci.com/gh/akatrevorjay/pytutils
+.. |coverage-badge| image:: https://coveralls.io/repos/akatrevorjay/pytutils/badge.svg?branch=develop&service=github
+   :target: https://coveralls.io/github/akatrevorjay/pytutils?branch=develop
+.. |docs-badge| image:: https://readthedocs.org/projects/pytutils/badge/?version=latest
+   :target: http://pytutils.readthedocs.org/en/latest/?badge=latest
 
