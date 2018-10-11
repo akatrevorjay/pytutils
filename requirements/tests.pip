@@ -1,0 +1,6 @@
+coverage
+coveralls
+mock
+pytest
+pytest-cov
+tox

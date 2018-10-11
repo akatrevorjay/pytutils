@@ -1,1 +1,1 @@
-requirements/install.txt
+requirements/install.pip

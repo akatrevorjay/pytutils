@@ -33,11 +33,6 @@ jobs:
             python3 -m venv venv
             . venv/bin/activate
 
-            ##
-            ## tox requires newer setuptools than tensorflow explicitly requires.
-            ## what the fuck dude, why would you hard pin that, fuck
-            ##
-
             # pip install -e .[tests]
             pip install -r requirements/tests.pip
 
