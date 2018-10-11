@@ -42,9 +42,9 @@ def consume(iterator, n=None):
         next(itertools.islice(iterator, n, n), None)
 
 
-def dedupe_iter(iterator):
+def dedupe_iter(iterator, hashfunc=hash):
     """"
-    Deduplicates an iterator iteratively using a set.
+    Deduplicates an iterator iteratively using hashed values in a set.
     Not exactly memory efficient because of that of course.
     If you have a large dataset with high cardinality look at HyperLogLog instead.
 
@@ -52,9 +52,12 @@ def dedupe_iter(iterator):
     """
     done = set()
     for item in iterator:
-        if item in done:
+        hashed = hashfunc(item)
+
+        if hashed in done:
             continue
-        done.add(item)
+
+        done.add(hashed)
         yield item
 
 
@@ -71,4 +74,3 @@ def dedupe(f, instance, args, kwargs):
     """
     gen = f(*args, **kwargs)
     return dedupe_iter(gen)
-
