@@ -11,7 +11,7 @@ def update_query_params(url, params, doseq=True):
     Update and/or insert query parameters in a URL.
 
     >>> update_query_params('http://example.com?foo=bar&biz=baz', dict(foo='stuff'))
-    'http://example.com?foo=stuff&biz=baz'
+    'http://example.com?...foo=stuff...'
 
     :param url: URL
     :type url: str

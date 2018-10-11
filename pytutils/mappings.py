@@ -140,20 +140,22 @@ def format_dict_recursively(
 
     Example:
 
+    >>> from pprint import pprint as pp
     >>> c = dict(wat='wat{omg}', omg=True)
-    >>> format_dict_recursively(c)
+    >>> pp(format_dict_recursively(c))
     {'omg': True, 'wat': 'watTrue'}
 
     Dealing with missing (unresolvable) keys in format strings:
 
+    >>> from pprint import pprint as pp
     >>> c = dict(wat='wat{omg}', omg=True, fail='no{whale}')
     >>> format_dict_recursively(c)
     Traceback (most recent call last):
         ...
     ValueError: Impossible to format dict due to missing elements: {'fail': ['whale']}
-    >>> format_dict_recursively(c, raise_unresolvable=False)
-    {'omg': True, 'wat': 'watTrue', 'fail': 'no{whale}'}
-    >>> format_dict_recursively(c, raise_unresolvable=False, strip_unresolvable=True)
+    >>> pp(format_dict_recursively(c, raise_unresolvable=False))
+    {'fail': 'no{whale}', 'omg': True, 'wat': 'watTrue'}
+    >>> pp(format_dict_recursively(c, raise_unresolvable=False, strip_unresolvable=True))
     {'omg': True, 'wat': 'watTrue'}
 
     :param dict mapping: Dict.

@@ -61,8 +61,7 @@ jobs:
             echo "# start" >> "$BASH_ENV"
             set -xv -eo pipefail; source "$BASH_ENV"
 
-            # pip install -e .[tests]
-            pip install -r requirements/tests.pip
+            pip install -e .[tests]
 
       - save_cache:
           paths:
