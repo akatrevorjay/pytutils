@@ -9,9 +9,8 @@ def bind(instance, func, as_name):
     >>> foo = Foo(2, 3)
     >>> my_unbound_method = lambda self: self.x * self.y
     >>> bind(foo, my_unbound_method, 'multiply')
-    >>> # noinspection PyUnresolvedReferences
-    ... foo.multiply()
-    <<< 6
+    >>> foo.multiply()  # noinspection PyUnresolvedReferences
+    6
 
     :param object instance: some object
     :param callable func: unbound method (i.e. a function that takes `self` argument, that you now

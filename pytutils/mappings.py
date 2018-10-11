@@ -1,4 +1,5 @@
 import collections
+import re
 
 import six
 
@@ -151,7 +152,7 @@ def format_dict_recursively(
         ...
     ValueError: Impossible to format dict due to missing elements: {'fail': ['whale']}
     >>> format_dict_recursively(c, raise_unresolvable=False)
-    {'fail': 'no{whale}', 'omg': True, 'wat': 'watTrue'}
+    {'omg': True, 'wat': 'watTrue', 'fail': 'no{whale}'}
     >>> format_dict_recursively(c, raise_unresolvable=False, strip_unresolvable=True)
     {'omg': True, 'wat': 'watTrue'}
 

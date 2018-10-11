@@ -1,14 +1,14 @@
-
 from six.moves.queue import Queue
 from threading import Thread
 
 
-def multiplex(n, q, **kwargs):
-    """ Convert one queue into several equivalent Queues
+def multiplex(q, count=2, queue_factory=lambda: Queue()):
+    """ Convert one queue into several. Kind of like a teeing queue.
 
-    >>> q1, q2, q3 = multiplex(3, in_q)
+    >>> in_q = Queue()
+    >>> q1, q2, q3 = multiplex(in_q, count=3)
     """
-    out_queues = [Queue(**kwargs) for i in range(n)]
+    out_queues = [queue_factory() for _ in range(count)]
 
     def f():
         while True:
@@ -31,6 +31,7 @@ def push(in_q, out_q):
 def merge(*in_qs, **kwargs):
     """ Merge multiple queues together
 
+    >>> q1, q2, q3 = [Queue() for _ in range(3)]
     >>> out_q = merge(q1, q2, q3)
     """
     out_q = Queue(**kwargs)

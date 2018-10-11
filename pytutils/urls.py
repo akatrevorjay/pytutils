@@ -1,11 +1,16 @@
-from six.moves import urllib_parse as up
+try:
+    import urlparse
+    from urllib import urlencode
+except ImportError:  # py3k
+    import urllib.parse as urlparse
+    urlencode = urlparse.urlencode
 
 
-def update_query_params(url, **kwargs):
+def update_query_params(url, params, doseq=True):
     """
     Update and/or insert query parameters in a URL.
 
-    >>> update_query_params('http://example.com?foo=bar&biz=baz', foo='stuff')
+    >>> update_query_params('http://example.com?foo=bar&biz=baz', dict(foo='stuff'))
     'http://example.com?foo=stuff&biz=baz'
 
     :param url: URL
@@ -15,11 +20,12 @@ def update_query_params(url, **kwargs):
     :return: Modified URL
     :rtype: str
     """
-    scheme, netloc, path, query_string, fragment = up.urlsplit(url)
-    query_params = up.parse_qs(query_string)
+    scheme, netloc, path, query_string, fragment = urlparse.urlsplit(url)
 
-    query_params.populate(kwargs)
-    new_query_string = up.urlencode(query_params, doseq=True)
+    query_params = urlparse.parse_qs(query_string)
+    query_params.update(**params)
 
-    return up.urlunsplit((scheme, netloc, path, new_query_string, fragment))
+    new_query_string = urlencode(query_params, doseq=doseq)
 
+    new_url = urlparse.urlunsplit([scheme, netloc, path, new_query_string, fragment])
+    return new_url
