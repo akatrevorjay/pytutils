@@ -18,20 +18,48 @@ jobs:
     working_directory: ~/repo
 
     steps:
+      - setup_remote_docker:
+          version: 17.07.0-ce
+
+      ##
+      ## checkout
+      ##
+
+      - restore_cache:
+          keys:
+            - source-v1-{{ .Branch }}-{{ .Revision }}
+
       - checkout
+      - run:
+          name: checkout-submodules
+          command: |
+            echo "# start" >> "$BASH_ENV"
+            set -xv -eo pipefail; source "$BASH_ENV"
+
+            git submodule sync --recursive
+            git submodule update --init --recursive
+
+      - save_cache:
+          key: source-v1-{{ .Branch }}-{{ .Revision }}
+          paths:
+            - ".git"
+
+      ##
+      ## deps
+      ##
 
       # Download and cache dependencies
       - restore_cache:
           keys:
-          - v1-dependencies-{{ checksum "setup.py" }}
+          - deps-v1-{{ checksum "setup.py" }}
           # fallback to using the latest cache if no exact match is found
-          - v1-dependencies-
+          - deps-v1-
 
       - run:
           name: install-deps
           command: |
-            python3 -m venv venv
-            . venv/bin/activate
+            echo "# start" >> "$BASH_ENV"
+            set -xv -eo pipefail; source "$BASH_ENV"
 
             # pip install -e .[tests]
             pip install -r requirements/tests.pip
@@ -39,13 +67,12 @@ jobs:
       - save_cache:
           paths:
             - ./venv
-          key: v1-dependencies-{{ checksum "setup.py" }}
+          key: deps-v1-{{ checksum "setup.py" }}
 
       - run:
           name: run-tests
           command: |
-            . venv/bin/activate
-
+            set -xv -eo pipefail; source "$BASH_ENV"
             ./bin/run-tests --ci
 
       - store_test_results:
@@ -53,26 +80,28 @@ jobs:
 
       - restore_cache:
           keys:
-          - v1-tox-{{ checksum "setup.py" }}
+          - tox-v1-{{ checksum "setup.py" }}
           # fallback to using the latest cache if no exact match is found
-          - v1-tox-
+          - tox-v1-
 
       - run:
           name: run-tox
           command: |
-            . venv/bin/activate
+            set -xv -eo pipefail; source "$BASH_ENV"
 
             ./bin/run-tox
 
       - save_cache:
           paths:
             - ./.tox
-          key: v1-tox-{{ checksum "setup.py" }}
+          key: tox-v1-{{ checksum "setup.py" }}
 
       - run:
           name: coveralls
+          no_output_timeout: 20m
           command: |
-            . venv/bin/activate
+            set -xv -eo pipefail; source "$BASH_ENV"
 
-            [[ -z "$COVERALLS_REPO_TOKEN" ]] || coveralls
+            [[ -z "$COVERALLS_REPO_TOKEN" ]] \
+                || coveralls --service=circleci
 

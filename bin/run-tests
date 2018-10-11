@@ -7,15 +7,11 @@ project_root="${0%/*}/.."
 : ${PYTHONUNBUFFERED:=1}
 : ${PYTHONDONTWRITEBYTECODE:=1}
 
-# Filter out [info=1 warn=2 error=3] messages
-: ${TF_CPP_MIN_LOG_LEVEL:=3}
-
 : ${COVERAGE_PROCESS_START:="$project_root/.coveragerc"}
 
 export \
-	TF_CPP_MIN_LOG_LEVEL \
-	COVERAGE_PROCESS_START \
 	${!PYTHON*} \
+	COVERAGE_PROCESS_START \
  && :
 
 run-tests() {
@@ -36,7 +32,6 @@ run-tests() {
 			--junit-xml="$reports_dir/pytest.xml"
 
 			--cov-config="$project_root/.coveragerc"
-			--cov-branch
 			--no-cov-on-fail
 
 			-s -vvv
