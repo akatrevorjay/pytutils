@@ -1,3 +1,8 @@
+try:
+    from collections.abc import MutableSet
+except ImportError:
+    from collections import MutableSet
+
 import collections
 import copy
 import random
@@ -9,14 +14,14 @@ from .iters import consume
 
 
 @attr.s
-class MetaSet(collections.MutableSet):
+class MetaSet(MutableSet):
     """
     Set that tracks the time a value was added.
     """
 
     _meta_func = attr.ib(default=lambda value, **kwargs: random.randint(0, 1))  # type: callable
 
-    _store = attr.ib(factory=set)  # type: collections.MutableSet
+    _store = attr.ib(factory=set)  # type: MutableSet
     _meta = attr.ib(factory=dict)  # type: collections.MutableMapping
 
     _initial = attr.ib(default=None)  # type: collections.Iterable

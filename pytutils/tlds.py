@@ -1,7 +1,7 @@
 import cachetools
 
 from .pythree import ensure_decoded_text
-from itertools import accumulate
+from .iters import accumulate
 
 _ttl_cache = cachetools.TTLCache(maxsize=1024, ttl=600)
 
