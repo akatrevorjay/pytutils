@@ -5,7 +5,7 @@ def update_query_params(url, **kwargs):
     """
     Update and/or insert query parameters in a URL.
 
-    >>> set_query_parameter('http://example.com?foo=bar&biz=baz', foo='stuff')
+    >>> update_query_params('http://example.com?foo=bar&biz=baz', foo='stuff')
     'http://example.com?foo=stuff&biz=baz'
 
     :param url: URL
