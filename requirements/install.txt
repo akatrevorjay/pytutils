@@ -3,3 +3,4 @@ py
 pygments
 six
 wrapt
+attrs

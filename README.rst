@@ -5,8 +5,8 @@ Trevor's steaming hot pile of 🗑️  garbage.
 
 Don't worry, it's ♻️" recycleable.
 
-.. image:: https://raw.githubusercontent.com/akatrevorjay/pytutils/develop/media/logo.png
-    :alt: pytutils logo
+.. image:: https://raw.githubusercontent.com/akatrevorjay/pytutils/develop/media/toodles.jpg
+    :alt: toodles
     :align: center
 
 |ci-badge| |coverage-badge| |docs-badge|

@@ -1,47 +1,6 @@
 import collections
 
-_ALL = object()
 _sentinel = object()
-
-
-def traverse_tree(mapping, keys=[_ALL], __level=0):
-    """
-    Traverse dictionary `mapping` on the specified `traverse_keys`, yielding each node. NOT thread safe.
-    If `traverse_tree.ALL` is included in `keys`, then every edge node will be yielded.
-
-    :param mapping collections.Mapping: Dictionary
-    :param keys collections.Iterable: Iterable of keys to walk down
-
-    >>> data = {'count': 2,
-    ...         'text': '1',
-    ...         'kids': [{'count': 3,
-    ...                   'text': '1.1',
-    ...                   'kids': [{'count': 1,
-    ...                             'text': '1.1.1',
-    ...                             'kids': [{'count':0,
-    ...                                       'text': '1.1.1.1',
-    ...                                       'kids': []}]},
-    ...                            {'count': 0,
-    ...                             'text': '1.1.2',
-    ...                             'kids': []},
-    ...                            {'count': 0,
-    ...                             'text': '1.1.3',
-    ...                             'kids': []}]},
-    ...                  {'count': 0,
-    ...                   'text': '1.2',
-    ...                   'kids': []}]}
-    >>> traverse_tree(data, 'kids')
-    """
-    iter_keys = traverse_tree.ALL in keys and mapping.keys() or keys
-    for key in iter_keys:
-        for child in mapping[key]:
-            __level += 1
-            yield child
-            yield traverse_tree(mapping, child, keys=keys, __level=__level)
-            __level -= 1
-
-
-traverse_tree.ALL = _ALL
 
 
 def get_tree_node(mapping, key, default=_sentinel, parent=False):

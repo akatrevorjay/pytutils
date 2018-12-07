@@ -1,4 +1,5 @@
 import collections
+import re
 import os
 
 import six
@@ -152,7 +153,7 @@ def format_dict_recursively(
         ...
     ValueError: Impossible to format dict due to missing elements: {'fail': ['whale']}
     >>> format_dict_recursively(c, raise_unresolvable=False)
-    {'fail': 'no{whale}', 'omg': True, 'wat': 'watTrue'}
+    {'omg': True, 'wat': 'watTrue', 'fail': 'no{whale}'}
     >>> format_dict_recursively(c, raise_unresolvable=False, strip_unresolvable=True)
     {'omg': True, 'wat': 'watTrue'}
 
@@ -255,6 +256,7 @@ class ProcessLocal:
 
     Aka `threading.local()`, but for processes instead of threads.
     """
+
     __pid__ = -1
 
     def __init__(self, mapping_factory=dict):
@@ -276,3 +278,4 @@ class ProcessLocal:
     def __setitem__(self, key, val):
         self.__handle_pid()
         return self.__store.__setitem__(key)
+
