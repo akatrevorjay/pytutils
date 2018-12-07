@@ -1,4 +1,5 @@
 import collections
+import os
 
 import six
 
@@ -246,3 +247,32 @@ class RecursiveProxyAttrDict(ProxyMutableMapping):
             val = self.__class__(val)
 
         raise AttributeError(name)
+
+
+class ProcessLocal:
+    """
+    Provides a basic per-process mapping container that wipes itself if the current PID changed since the last get/set.
+
+    Aka `threading.local()`, but for processes instead of threads.
+    """
+    __pid__ = -1
+
+    def __init__(self, mapping_factory=dict):
+        self.__mapping_factory = mapping_factory
+
+    def __handle_pid(self):
+        new_pid = os.getpid()
+        if self.__pid__ != new_pid:
+            self.__pid__, self.__store = new_pid, self.__mapping_factory()
+
+    def __delitem__(self, key):
+        self.__handle_pid()
+        return self.__store.__delitem__(key)
+
+    def __getitem__(self, key):
+        self.__handle_pid()
+        return self.__store.__getitem__(key)
+
+    def __setitem__(self, key, val):
+        self.__handle_pid()
+        return self.__store.__setitem__(key)
