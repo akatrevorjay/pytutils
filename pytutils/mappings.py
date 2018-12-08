@@ -27,9 +27,10 @@ class ProxyMutableMapping(collections.MutableMapping):
         :param bool fancy_repr: If True, show fancy repr, otherwise just show dict's
         :param bool dictify_repr: If True, cast mapping to a dict on repr
         """
-        self.__mapping = mapping
         self.__fancy_repr = fancy_repr
         self.__dictify_repr = dictify_repr
+
+        self._set_mapping(mapping)
 
     def __repr__(self):
         if not self.__fancy_repr:
@@ -40,6 +41,9 @@ class ProxyMutableMapping(collections.MutableMapping):
             mapping = dict(mapping)
 
         return '<%s %s>' % (self.__class__.__name__, mapping)
+
+    def _set_mapping(self, mapping):
+        self.__mapping = mapping
 
     def __contains__(self, item):
         return item in self.__mapping
@@ -60,8 +64,35 @@ class ProxyMutableMapping(collections.MutableMapping):
         return len(self.__mapping)
 
 
-class PrefixedProxyMutableMapping(ProxyMutableMapping):
+class HookableProxyMutableMapping(ProxyMutableMapping):
+    def __key_trans__(self, key, store=False, get=False, contains=False, delete=False):
+        return key
 
+    def __key_allowed__(self, key):
+        return True
+
+    def __iter__(self):
+        orig_iter = super(HookableProxyMutableMapping, self).__iter__()
+        return (self.__key_remove_prefix__(key) for key in orig_iter if self.__key_allowed__(key))
+
+    def __contains__(self, item):
+        item = self.__key_trans__(item, contains=True)
+        return super(HookableProxyMutableMapping, self).__contains__(item)
+
+    def __getitem__(self, item):
+        item = self.__key_trans__(item, get=True)
+        return super(HookableProxyMutableMapping, self).__getitem__(item)
+
+    def __setitem__(self, item, value):
+        item = self.__key_trans__(item, store=True)
+        return super(HookableProxyMutableMapping, self).__setitem__(item, value)
+
+    def __delitem__(self, item):
+        item = self.__key_trans__(item, delete=True)
+        return super(HookableProxyMutableMapping, self).__delitem__(item)
+
+
+class PrefixedProxyMutableMapping(HookableProxyMutableMapping):
     def __init__(self, prefix, mapping, only_prefixed=True, fancy_repr=True, dictify_repr=False):
         """
         :param str prefix: Prefix to add/remove from keys.
@@ -72,17 +103,17 @@ class PrefixedProxyMutableMapping(ProxyMutableMapping):
         self.__prefix = prefix
         self.__prefix_len = len(prefix)
         self.__only_prefixed = only_prefixed
+
         super(PrefixedProxyMutableMapping, self).__init__(
             mapping,
             fancy_repr=fancy_repr,
             dictify_repr=dictify_repr,
         )
 
-    def __key_add_prefix__(self, key):
-        return self.__prefix + key
-
-    def __key_remove_prefix__(self, key):
-        return key[self.__prefix_len:]
+    def __key_trans__(self, key, store=False, get=False, contains=False, delete=False):
+        if store:
+            return self.__key_remove_prefix__(key)
+        return self.__key_add_prefix__(key)
 
     def __key_allowed__(self, key):
         if self.__only_prefixed:
@@ -93,25 +124,11 @@ class PrefixedProxyMutableMapping(ProxyMutableMapping):
                 return False
         return True
 
-    def __iter__(self):
-        orig_iter = super(PrefixedProxyMutableMapping, self).__iter__()
-        return (self.__key_remove_prefix__(key) for key in orig_iter if self.__key_allowed__(key))
+    def __key_add_prefix__(self, key):
+        return self.__prefix + key
 
-    def __contains__(self, item):
-        item = self.__key_add_prefix__(item)
-        return super(PrefixedProxyMutableMapping, self).__contains__(item)
-
-    def __getitem__(self, item):
-        item = self.__key_add_prefix__(item)
-        return super(PrefixedProxyMutableMapping, self).__getitem__(item)
-
-    def __setitem__(self, item, value):
-        item = self.__key_remove_prefix__(item)
-        return super(PrefixedProxyMutableMapping, self).__setitem__(item, value)
-
-    def __delitem__(self, item):
-        item = self.__key_add_prefix__(item)
-        return super(PrefixedProxyMutableMapping, self).__delitem__(item)
+    def __key_remove_prefix__(self, key):
+        return key[self.__prefix_len:]
 
 
 class MultiDict(collections.OrderedDict):
@@ -211,7 +228,6 @@ def format_dict_recursively(
 
 
 class ProxyMutableAttrDict(dict):
-
     @property
     def _wrap_as(self):
         return self.__class__
@@ -252,11 +268,22 @@ class RecursiveProxyAttrDict(ProxyMutableMapping):
         raise AttributeError(name)
 
 
-class ProcessLocal:
+class ProcessLocal(HookableProxyMutableMapping):
     """
     Provides a basic per-process mapping container that wipes itself if the current PID changed since the last get/set.
 
     Aka `threading.local()`, but for processes instead of threads.
+
+    >>> plocal = ProcessLocal()
+    >>> plocal['test'] = True
+    >>> plocal['test']
+    True
+    >>> plocal._handle_pid(new_pid=-1)  # Emulate a PID change by forcing it to be something invalid.
+    >>> plocal['test']                  # Mapping wipes itself since PID is different than what's stored.
+    Traceback (most recent call last):
+        ...
+    KeyError: ...
+
     """
 
     __pid__ = -1
@@ -264,20 +291,22 @@ class ProcessLocal:
     def __init__(self, mapping_factory=dict):
         self.__mapping_factory = mapping_factory
 
-    def __handle_pid(self):
-        new_pid = os.getpid()
+        self._handle_pid()
+
+        super(ProcessLocal, self).__init__(
+            self.__mapping,
+            fancy_repr=True,
+            dictify_repr=False,
+        )
+
+    def __key_trans__(self, key, store=False, get=False, contains=False, delete=False):
+        self._handle_pid()
+        return key
+
+    def _handle_pid(self, new_pid=os.getpid):
+        if callable(new_pid):
+            new_pid = new_pid()
+
         if self.__pid__ != new_pid:
-            self.__pid__, self.__store = new_pid, self.__mapping_factory()
-
-    def __delitem__(self, key):
-        self.__handle_pid()
-        return self.__store.__delitem__(key)
-
-    def __getitem__(self, key):
-        self.__handle_pid()
-        return self.__store.__getitem__(key)
-
-    def __setitem__(self, key, val):
-        self.__handle_pid()
-        return self.__store.__setitem__(key)
-
+            self.__pid__, self.__mapping = new_pid, self.__mapping_factory()
+            self._set_mapping(self.__mapping)
