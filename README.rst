@@ -1,9 +1,9 @@
 pytutils
 ========
 
-Trevor's steaming hot pile of 🗑️  garbage.
+Common utilities.
 
-Don't worry, it's ♻️" recycleable.
+New portions are py3 only, but most is currently still 2.7.x compat.
 
 .. image:: https://raw.githubusercontent.com/akatrevorjay/pytutils/develop/media/toodles.jpg
     :alt: toodles
