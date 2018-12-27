@@ -310,3 +310,32 @@ class ProcessLocal(HookableProxyMutableMapping):
         if self.__pid__ != new_pid:
             self.__pid__, self.__mapping = new_pid, self.__mapping_factory()
             self._set_mapping(self.__mapping)
+
+
+class LastUpdatedOrderedDict(collections.OrderedDict):
+    """
+    Stores items in the order the keys were last added.
+
+    From Python stdlib in `collections`.
+    """
+
+    def __setitem__(self, key, value):
+        if key in self:
+            del self[key]
+
+        return collections.OrderedDict.__setitem__(self, key, value)
+
+
+class OrderedCounter(collections.Counter, collections.OrderedDict):
+    """
+    An ordered dictionary can be combined with the Counter class so that the counter remembers the order elements are
+    first encountered.
+
+    From Python stdlib in `collections`.
+    """
+
+    def __repr__(self):
+        return '%s(%r)' % (self.__class__.__name__, collections.OrderedDict(self))
+
+    def __reduce__(self):
+        return self.__class__, (collections.OrderedDict(self), )
