@@ -3,21 +3,28 @@ import cachetools
 from .pythree import ensure_decoded_text
 from .iters import accumulate
 
-_ttl_cache = cachetools.TTLCache(maxsize=1024, ttl=600)
-
+_ttl_cache = lambda *args, **kwargs: cachetools.TTLCache(maxsize=1024, ttl=600)
+_tldex = None
 
 # This is cached because tldextract is SLOW
 @cachetools.cachedmethod(_ttl_cache)
 def split_domain_into_subdomains(domain, split_tld=False):
+    """
+    Walks up a domain by subdomain.
+
+    >>> split_domain_into_subdomains('this.is.a.test.skywww.net')
+    ['this.is.a.test.skywww.net', 'is.a.test.skywww.net', 'a.test.skywww.net', 'test.skywww.net', 'skywww.net']
+
+    """
     import tldextract
 
     # Requires unicode
     domain = ensure_decoded_text(domain)
 
-    # Do not request latest TLS list on init == suffix_list_url=False
+    # Do not request latest TLS list on init == suffix_list_urls=False
     global _tldex
     if _tldex is None:
-        _tldex = tldextract.TLDExtract(suffix_list_url=False)
+        _tldex = tldextract.TLDExtract(suffix_list_urls=False)
 
     tx = _tldex(domain)
 
