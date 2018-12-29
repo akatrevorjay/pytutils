@@ -1,8 +1,10 @@
 import collections
-import re
 import os
+import re
 
 import six
+
+from .props import classproperty
 
 
 class AttrDict(dict):
@@ -19,7 +21,30 @@ Messenger = AttrDict
 
 
 class ProxyMutableMapping(collections.MutableMapping):
-    """Proxies access to an existing dict-like object."""
+    """
+    Proxies access to an existing dict-like object.
+
+    >>> a = dict(whoa=True, hello=[1,2,3], why='always')
+    >>> b = ProxyMutableAttrDict(a)
+
+    Nice reprs:
+
+    >>> b
+    <ProxyMutableAttrDict {'whoa': True, 'hello': [1, 2, 3], 'why': 'always'}>
+
+    Setting works as you'd expect:
+
+    >>> b['nice'] = False
+    >>> b['whoa'] = 'yeee'
+    >>> b
+    <ProxyMutableAttrDict {'whoa': 'yeee', 'hello': [1, 2, 3], 'why': 'always', 'nice': False}>
+
+    Checking that the changes are in fact being performed on the proxied object:
+
+    >>> a
+    {'whoa': 'yeee', 'hello': [1, 2, 3], 'why': 'always', 'nice': False}
+
+    """
 
     def __init__(self, mapping, fancy_repr=True, dictify_repr=False):
         """
@@ -65,6 +90,11 @@ class ProxyMutableMapping(collections.MutableMapping):
 
 
 class HookableProxyMutableMapping(ProxyMutableMapping):
+    def __init__(self, mapping, fancy_repr=True, dictify_repr=False):
+        self.__mapping = mapping
+
+        super(HookableProxyMutableMapping, self).__init__(mapping, fancy_repr=fancy_repr, dictify_repr=dictify_repr)
+
     def __key_trans__(self, key, store=False, get=False, contains=False, delete=False):
         return key
 
@@ -227,10 +257,58 @@ def format_dict_recursively(
     return ret
 
 
-class ProxyMutableAttrDict(dict):
-    @property
-    def _wrap_as(self):
-        return self.__class__
+class ProxyMutableAttrDict(ProxyMutableMapping):
+    """
+    Proxies mutable access to another mapping and allows for attribute-style access.
+
+    >>> a = dict(whoa=True, hello=[1,2,3], why='always')
+    >>> b = ProxyMutableAttrDict(a)
+
+    Nice reprs:
+
+    >>> b
+    <ProxyMutableAttrDict {'whoa': True, 'hello': [1, 2, 3], 'why': 'always'}>
+
+    Setting works as you'd expect:
+
+    >>> b['nice'] = False
+    >>> b['whoa'] = 'yeee'
+    >>> b
+    <ProxyMutableAttrDict {'whoa': 'yeee', 'hello': [1, 2, 3], 'why': 'always', 'nice': False}>
+
+    Checking that the changes are in fact being performed on the proxied object:
+
+    >>> a
+    {'whoa': 'yeee', 'hello': [1, 2, 3], 'why': 'always', 'nice': False}
+
+    Attribute style access:
+
+    >>> b.whoa
+    'yeee'
+    >>> b.state = 'new'
+    >>> b
+    <ProxyMutableAttrDict {'whoa': 'yeee', 'hello': [1, 2, 3], 'why': 'always', 'nice': False, 'state': 'new'}>
+
+    Recursion is handled:
+
+    >>> b.subdict = dict(test=True)
+    >>> b.subdict.test
+    True
+    >>> b
+    <ProxyMutableAttrDict {'whoa': 'yeee', 'hello': [1, 2, 3], 'why': 'always', 'nice': False, 'state': 'new',
+    'subdict': <ProxyMutableAttrDict {'test': True}>}>
+
+    """
+
+    def __init__(self, mapping, fancy_repr=True, dictify_repr=False, recursion=True):
+        self.__recursion = recursion
+        self.__mapping = mapping
+
+        super(ProxyMutableAttrDict, self).__init__(mapping, fancy_repr=fancy_repr, dictify_repr=dictify_repr)
+
+    @classproperty
+    def _wrap_as(cls):
+        return cls
 
     def __getattr__(self, key):
         if not key.startswith('_'):
@@ -243,7 +321,7 @@ class ProxyMutableAttrDict(dict):
 
     def __setattr__(self, key, value):
         if not key.startswith('_'):
-            if isinstance(value, collections.Mapping) and not isinstance(value, self._wrap_as):
+            if self.__recursion and isinstance(value, collections.Mapping) and not isinstance(value, self._wrap_as):
                 value = self.__class__(value)
 
             try:
@@ -255,17 +333,7 @@ class ProxyMutableAttrDict(dict):
         return super(ProxyMutableAttrDict, self).__setattr__(key, value)
 
 
-class RecursiveProxyAttrDict(ProxyMutableMapping):
-    __getattr__ = ProxyMutableMapping.__getitem__
-    __setattr__ = ProxyMutableMapping.__setitem__
-
-    def __getitem__(self, name):
-        val = self.__getitem__(name)
-
-        if isinstance(val, collections.Mapping) and not isinstance(val, self.__class__):
-            val = self.__class__(val)
-
-        raise AttributeError(name)
+RecursiveProxyAttrDict = ProxyMutableAttrDict
 
 
 class ProcessLocal(HookableProxyMutableMapping):

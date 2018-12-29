@@ -2,4 +2,4 @@
 omit =
     */tests/*
     */test_*.py
-
+    pytutils/lazy/*.py
