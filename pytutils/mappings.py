@@ -313,8 +313,12 @@ class ProxyMutableAttrDict(ProxyMutableMapping):
     def __getattr__(self, key):
         if not key.startswith('_'):
             try:
-                val = self.__mapping[key]
-                return val
+                value = self.__mapping[key]
+
+                if self.__recursion and isinstance(value, collections.Mapping) and not isinstance(value, self._wrap_as):
+                    value = self.__class__(value)
+
+                return value
             except KeyError:
                 # in py3 I'd chain these
                 raise AttributeError(key)
