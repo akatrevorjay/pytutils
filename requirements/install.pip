@@ -5,3 +5,4 @@ pygments
 six
 wrapt
 attrs
+colorlog

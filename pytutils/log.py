@@ -36,6 +36,7 @@ def _namespace_from_calling_context():
 
 DEFAULT_CONFIG = dict(
     version=1,
+    disable_existing_loggers=False,
     formatters={
         'colored': {
             '()': 'colorlog.ColoredFormatter',
@@ -83,7 +84,10 @@ def configure(config=None, env_var='LOGGING', default=DEFAULT_CONFIG):
     try:
         logging.config.dictConfig(cfg)
     except TypeError as exc:
-        logging.basicConfig(**cfg)
+        try:
+            logging.basicConfig(**cfg)
+        except Exception as inner_exc:
+            raise inner_exc from exc
 
 
 def get_config(given=None, env_var=None, default=None):
