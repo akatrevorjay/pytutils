@@ -79,6 +79,13 @@ DEFAULT_CONFIG = dict(
 
 
 def configure(config=None, env_var='LOGGING', default=DEFAULT_CONFIG):
+    """
+
+    >>> log = logging.getLogger(__name__)
+    >>> configure()
+    >>> log.info('test')
+
+    """
     cfg = get_config(config, env_var, default)
 
     try:
@@ -133,6 +140,13 @@ def _ensure_configured(_has_configured=_CONFIGURED):
 
 
 def get_logger(name=None):
+    """
+    >>> log = get_logger()
+    >>> log.info('test')
+
+    >>> log = get_logger('test2')
+    >>> log.info('test2')
+    """
     _ensure_configured()
 
     if not name:
