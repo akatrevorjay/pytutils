@@ -1,10 +1,6 @@
-
-from .memo import lazyclassproperty, lazyperclassproperty, lazyproperty
-
-
-class classproperty(object):
+class roclassproperty(object):
     """
-    Class-level property descriptor factory/decorator.
+    Read-only class property descriptor factory/decorator.
     """
 
     def __init__(self, f):
@@ -14,8 +10,10 @@ class classproperty(object):
         return self.f(owner)
 
 
-class setterproperty(object):
+classproperty = roclassproperty
 
+
+class setterproperty(object):
     def __init__(self, func, doc=None):
         self.func = func
         self.__doc__ = doc if doc is not None else func.__doc__
@@ -24,3 +22,31 @@ class setterproperty(object):
         return self.func(obj, value)
 
 
+def lazyperclassproperty(fn):
+    """
+    Lazy/Cached class property that stores separate instances per class/inheritor so there's no overlap.
+    """
+
+    @classproperty
+    def _lazyclassprop(cls):
+        attr_name = '_%s_lazy_%s' % (cls.__name__, fn.__name__)
+        if not hasattr(cls, attr_name):
+            setattr(cls, attr_name, fn(cls))
+        return getattr(cls, attr_name)
+
+    return _lazyclassprop
+
+
+def lazyclassproperty(fn):
+    """
+    Lazy/Cached class property.
+    """
+    attr_name = '_lazy_' + fn.__name__
+
+    @classproperty
+    def _lazyclassprop(cls):
+        if not hasattr(cls, attr_name):
+            setattr(cls, attr_name, fn(cls))
+        return getattr(cls, attr_name)
+
+    return _lazyclassprop

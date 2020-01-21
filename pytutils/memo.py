@@ -1,10 +1,13 @@
 import functools
 
+import cachetools
+
+from .props import lazyclassproperty, lazyperclassproperty
+
 _default = []  # evaluates to False
 
 
 class CachedException(object):
-
     def __init__(self, ex):
         self.ex = ex
 
@@ -85,36 +88,6 @@ def cachedmethod(cache, key=_default, lock=None, typed=_default, cached_exceptio
     return decorator
 
 
-def lazyperclassproperty(fn):
-    """
-    Lazy/Cached class property that stores separate instances per class/inheritor so there's no overlap.
-    """
-
-    @classproperty
-    def _lazyclassprop(cls):
-        attr_name = '_%s_lazy_%s' % (cls.__name__, fn.__name__)
-        if not hasattr(cls, attr_name):
-            setattr(cls, attr_name, fn(cls))
-        return getattr(cls, attr_name)
-
-    return _lazyclassprop
-
-
-def lazyclassproperty(fn):
-    """
-    Lazy/Cached class property.
-    """
-    attr_name = '_lazy_' + fn.__name__
-
-    @classproperty
-    def _lazyclassprop(cls):
-        if not hasattr(cls, attr_name):
-            setattr(cls, attr_name, fn(cls))
-        return getattr(cls, attr_name)
-
-    return _lazyclassprop
-
-
 def lazyproperty(fn):
     """
     Lazy/Cached property.
@@ -128,4 +101,3 @@ def lazyproperty(fn):
         return getattr(self, attr_name)
 
     return _lazyprop
-
