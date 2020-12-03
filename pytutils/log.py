@@ -74,6 +74,10 @@ DEFAULT_CONFIG = dict(
     root=dict(handlers=['console'], level=logging.DEBUG),
     loggers={
         'requests': dict(level=logging.INFO),
+
+        # ipython completion
+        'parso': dict(level=logging.INFO),
+        'importmagic': dict(level=logging.INFO),
     },
 )
 
